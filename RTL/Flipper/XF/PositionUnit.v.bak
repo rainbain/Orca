@@ -23,7 +23,7 @@ module PositionUnit(
 	// Vertex Input
 	//             
 	
-	input wire[5:0] vinPositionMatrix, input wire[95:0] vinPosition,  
+	input wire[6:0] vinPositionMatrix, input wire[95:0] vinPosition,  
 	
 	
 	//
@@ -36,7 +36,7 @@ module PositionUnit(
 	// Position Matrix Port
 	//
 	
-  output wire[5:0] posmatAddr, output wire posmatEnable,
+	output wire[6:0] posmatAddr, output reg posmatEnable,
 	input wire[127:0] posmatData, input wire posmatValid,
 	
 	//
@@ -47,7 +47,7 @@ module PositionUnit(
 	input wire[63:0] xfProjectionB,
 	input wire[63:0] xfProjectionC,
 	
-	input wire orthoEnable
+	input wire orthoEnable,
 );
 
 
@@ -72,7 +72,6 @@ MatrixPort mtport(
 	.mpAddr(posmatAddr), .mpEnable(posmatEnable), .mpData(posmatData), .mpValid(posmatValid),
 	
 	.mtAddr(vinPositionMatrix), .mtDone(matrixPortDone), .mtCycle(cycle),
-	.rowCount(3),
 	
 	.matrixA(matrixPortA), .matrixB(matrixPortB), .matrixC(matrixPortC)
 );
@@ -82,12 +81,12 @@ always @ (posedge clk) begin
 		ldsysReady <= 0;
 	end else begin
 		if(ldsysReady) begin
-      		if(ldsysAck)ldsysReady <= 0;
-	  	end else begin
-	    	ldsysReady <= matrixPortDone;
-	  	end
+			ldsysReady <= ~ldsysAck;
+		end else begin
+			ldsysReady <= matrixPortDone;
+		end
 		
-	 	 if(matrixPortDone) begin
+		if(matrixPortDone) begin
 			ldsysPosition <= vinPosition;
 			ldsysMatrix[0] <= matrixPortA;
 			ldsysMatrix[1] <= matrixPortB;
@@ -100,24 +99,26 @@ end
  * Transform System
 */
 
+reg transformSysPositionMatWant;
 // State Mashine
 
-  localparam [1:0]
-    STATE_IDLE = 2'b00,
-    STATE_MDSP_WAIT_A = 2'b01,
-    STATE_PROJECT = 2'b10,
-    STATE_MDSP_WAIT_B = 2'b11;
+localparam [0:0]
+    STATE_IDLE = 1'b0,
+    STATE_PROJECT = 1'b0
 
-reg[1:0] state;
-reg[1:0] nextState;
+reg[0:0] state;
+reg[0:0] nextState;
+
+reg[127:0] lastMatrixResult;
 
 always @* begin
 	// Defaults  
-	nextState = state;
+	state = nextState;
+	dataValid = 0;
 	dspCycle = 0;
 	ldsysAck = 0;
 	nextProgramPosition = 0;
-  	dspInputVector[127:32] = worldPosition;
+	dspInputVector = lastMatrixResult;
 	
 	// Feeing projection as default as both projection and ortho use it.
 	dspInputMatrix[0][127:64] = xfProjectionA;
@@ -134,54 +135,38 @@ always @* begin
 			if(ldsysReady) begin
 				nextProgramPosition = orthoEnable ? 11 : 7;
 				dspCycle = 1;
-				dspInputVector[127:32] = ldsysPosition;
+				dspInputVector = ldsysPosition;
 				
-				dspInputMatrix[0][127:64] = ldsysMatrix[0][127:64];
-				dspInputMatrix[1][127:64] = ldsysMatrix[1][127:64];
-				dspInputMatrix[2][127:64] = ldsysMatrix[2][127:64];
-
-				nextState = STATE_MDSP_WAIT_A;
-		  end
+				dspInputMatrix[0][127:64] = xfProjectionA;
+				dspInputMatrix[1][127:64] = xfProjectionB;
+				dspInputMatrix[2][127:64] = xfProjectionC;
+			end
+			if(dspReady) begin
+				nextState = STATE_PROJECT;
+				ldsysAck = 1;
+			end
 		end
-
-    	STATE_MDSP_WAIT_A: begin
-			nextProgramPosition = orthoEnable ? 11 : 7;
-      		dspInputMatrix[0][127:64] = ldsysMatrix[0][127:64];
-      		dspInputMatrix[1][127:64] = ldsysMatrix[1][127:64];
-      		dspInputMatrix[2][127:64] = ldsysMatrix[2][127:64];
-      		dspInputVector[127:32] = ldsysPosition;
-      		dspCycle = 0;
-      		nextState = dspReady ? STATE_PROJECT : state;
-      		ldsysAck = dspReady;
-    	end
 		
 		STATE_PROJECT: begin
 			dspCycle = 1;
-      		nextState = STATE_MDSP_WAIT_B;
+			if(dspReady) begin
+				nextState = STATE_IDLE;
+				dataValid = 1;
+			end
 		end
-    	STATE_MDSP_WAIT_B: begin
-      		nextState = dspReady ? STATE_IDLE : STATE_MDSP_WAIT_B;
-    	end
 	endcase
 end
 
 always @ (posedge clk) begin
+	if(dspReady) begin
+		lastMatrixResult <= dspOutputVector;
+	end
+	
 	if(~resetn) begin
 		state <= STATE_IDLE;
 	end else begin
 		state <= nextState;
 	end
-
-  if(state == STATE_MDSP_WAIT_A & dspReady) begin
-    worldPosition <= dspOutputVector[127:32];
-  end
-
-  if(state == STATE_MDSP_WAIT_B & dspReady) begin
-    projectedPosition <= dspOutputVector;
-    dataValid <= 1;
-  end else begin
-    dataValid <= 0;
-  end
 end
 
 /*
@@ -197,15 +182,15 @@ assign dspNextProgramPosition[7:4] = 0;
 reg dspCycle;
 wire dspReady;
 
-reg[127:0] dspInputVector;
+reg[127:0] dspInputVector,
 reg[127:0] dspInputMatrix[2:0];
 
 wire[127:0] dspOutputVector;
 
 MatrixDSP #(
-  	.MICROCODEA("firmware/dsp/PositionTransformMicrocodeA.mem"),
-  	.MICROCODEB("firmware/dsp/PositionTransformMicrocodeB.mem"),
-  	.MICROCODEC("firmware/dsp/PositionTransformMicrocodeC.mem"),
+	.MICROCODEA("firmware/dsp/PositionTransformMicrocodeA.mem"),
+	.MICROCODEB("firmware/dsp/PositionTransformMicrocodeB.mem"),
+	.MICROCODEC("firmware/dsp/PositionTransformMicrocodeC.mem"),
 	
 	.ENABLE_DSP_A(1),
 	.ENABLE_DSP_B(1),

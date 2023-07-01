@@ -188,7 +188,7 @@ SystemTimmer timmer(
 wire[31:0] SystemMatrixDSPReadData;
 wire SystemMatrixDSPWaitRequest;
 
-NormalUnitCore mdspip(
+MatrixDSPCore mdspip(
 	.clk(clk), .resetn(resetn),
 	
 	.address(hardwareAddress), .read(SystemMatrixDSPEnable & SystemRead), .write(SystemMatrixDSPEnable & SystemWrite),

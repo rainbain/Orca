@@ -30,7 +30,7 @@ the question for traditional Gamecube emulation.
 The Gamecube's large cache, clock speeds, and memory bandwidth are all major issues in
 the future development of Orca. Running the hardware at the intended speed is a goal 
 of Orca. With that, the PowerPC 750CXe core is currently outside the goal of emulation.
-Current work involves offloading part of Dolphin, a popular Gamecube/Wii emulator, to
+Current work involves offloading parts of Dolphin, a popular Gamecube/Wii emulator, to
 Orca to test the accuracy of its emulation and work out from there.
 
 

@@ -116,9 +116,11 @@ reg initalReady;
 always @ (posedge clk) begin
   if(~resetn) begin
 	 initalReady <= 1;
+    lastAccumulatorOutputAddr <= 0;
   end else begin
 	if(dspDone) begin
 		accumulator[dataOutAddr] <= dspResult;
+		lastAccumulatorOutputAddr <= dataOutAddr;
     initalReady <= 1;
     dataAAccumulatorData <= dspResult;
 	end
@@ -221,8 +223,6 @@ always @ (posedge clk) begin
 		dspStart <= 0;
 		dspOperation <= 0;
     switchEnable <= 0;
-    lastAccumulatorOutputAddr <= 0;
-    dataOutAddr <= 0;
 	end else begin
     if(ready & ~dspStart) begin
 			// Enter not ready and submit to dsp.
@@ -236,7 +236,6 @@ always @ (posedge clk) begin
 			end
 		end else begin
       dspStart <= 0;
-      lastAccumulatorOutputAddr <= dataOutAddr;
 		end
 	end
 end
