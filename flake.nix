@@ -18,9 +18,46 @@ outputs = {self, nixpkgs}: {
             nativeBuildInputs = [
                 pkgs.verilator
                 pkgs.cmake
+                pkgs.libffi
+                pkgs.libedit
+                pkgs.z3
+                pkgs.libbsd
+                pkgs.llvm
+                pkgs.gtkwave
             ];
 
             buildInputs = [
+                pkgs.udev
+                pkgs.libevdev
+                pkgs.qt6.full
+                pkgs.fmt
+                pkgs.pugixml
+                pkgs.enet
+                pkgs.xxHash
+                pkgs.bzip2
+                pkgs.zstd
+                pkgs.minizip
+                pkgs.lzo
+                pkgs.libspng
+                pkgs.libusb
+                pkgs.sfml
+                pkgs.miniupnpc
+                pkgs.mbedtls
+                pkgs.curl
+                pkgs.discord-rpc
+                pkgs.gtest
+                pkgs.hidapi
+                pkgs.xorg.libX11
+                pkgs.xorg.libX11.dev
+                pkgs.xorg.libxcb.dev
+                pkgs.cubeb
+                pkgs.xorg.libXi
+                pkgs.xorg.libXrandr
+                pkgs.libffi
+                pkgs.libedit
+                pkgs.z3
+                pkgs.libbsd
+                pkgs.llvm
             ];
         };
     };

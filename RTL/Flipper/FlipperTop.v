@@ -29,11 +29,31 @@ module FlipperTop(
  * Command System
 */
 
+wire[15:0] CPAddr;
+wire[31:0] CPWriteData;
+
+wire CPXFWrite;
+
 CommandProcessor CP(
     .clk(clk), .resetn(resetn),
 
     .GXFIFORead(GXFIFORead), .GXFIFOValid(GXFIFOValid),
-    .GXFIFOData(GXFIFOData)
+    .GXFIFOData(GXFIFOData),
+
+    .CPAddr(CPAddr), .CPData(CPWriteData),
+    .CPXFWrite(CPXFWrite)
+);
+
+
+/*
+ * XF ((X) TRANSFORM)
+*/
+
+XFTop xf(
+    .clk(clk), .resetn(resetn),
+
+    .CPAddr(CPAddr), .CPWrite(CPXFWrite),
+    .CPWriteData(CPWriteData)
 );
 
 endmodule

@@ -8,8 +8,7 @@
  * Orca Emulator
  *
  * Breaks up 32 bit words from the fifo into 8, 16, 24, 32 bytes.
- * To syncronize with the real gamecube it always operates within 2 cycles.
- * To do this 1 cycle commits data the other refreshes the read window.
+ * This one took a lot of work to get right.
 */
 
 module CommandDeserializer(
@@ -37,94 +36,106 @@ module CommandDeserializer(
 );
 
 /*
- * Deserializer
+ * Input Output FIFO
 */
 
-reg[31:0] deserializerWindow;
-wire[31:0] nextWindow = (deserializerWindow >> (CPBytes << 3)) | (GXFIFOData << ((4-CPBytes) << 3));
+reg[2:0] readHead;
+reg[2:0] writeHead;
 
-reg[3:0] dataValidPipeline;
+reg[7:0] fifoData[0:7];
 
-reg[1:0] byteCounter;
-wire[2:0] byteAdder = byteCounter + CPBytes;
-wire[1:0] nextByteCounter = byteAdder[1:0];
-wire byteCounterNextWord = byteAdder[2];
+reg readNext;
+wire[31:0] readData;
+assign readData[31:24] = fifoData[readHead+0];
+assign readData[23:16] = fifoData[readHead+1];
+assign readData[15:8]  = fifoData[readHead+2];
+assign readData[7:0]   = fifoData[readHead+3];
 
-reg deserializerLoad;
+wire[2:0] fifoSize = writeHead - readHead;
+
+wire fifoNotFull = fifoSize < 5; // Must have at least 5 bytes of room. 4 for the byte, 1 to prevent read head write head interception
+wire fifoNotEmpty = fifoSize >= CPBytes; // Size must match or excede requested size.
+
 always @ (posedge clk) begin
     if(~resetn) begin
-        byteCounter <= 0;
+        readHead <= 0;
+        writeHead <= 0;
     end else begin
-        if(deserializerLoad) begin
-            deserializerWindow <= nextWindow;
-            byteCounter <= nextByteCounter;
+        if(readNext) begin
+            readHead <= readHead + CPBytes;
         end
 
-        if(deserializerLoad) begin
-            dataValidPipeline[0] <= dataValidPipeline[1];
-            dataValidPipeline[1] <= dataValidPipeline[2];
-            dataValidPipeline[2] <= dataValidPipeline[3];
-            dataValidPipeline[3] <= 0;
-        end else begin
-            if(GXFIFOValid)dataValidPipeline <= 4'b1111;
+        if(GXFIFOValid) begin
+            writeHead <= writeHead + 4;
+            fifoData[writeHead] <= GXFIFOData[31:24];
+            fifoData[writeHead+1] <= GXFIFOData[23:16];
+            fifoData[writeHead+2] <= GXFIFOData[15:8];
+            fifoData[writeHead+3] <= GXFIFOData[7:0];
         end
     end
 end
 
 /*
- * Output System
+ * Output Buffer
 */
-
-reg outputReadEnable;
-
-wire[3:0] pipelineMask;
-assign pipelineMask[0] = CPBytes > 0;
-assign pipelineMask[1] = CPBytes > 1;
-assign pipelineMask[2] = CPBytes > 2;
-assign pipelineMask[3] = CPBytes > 3;
-
-wire readDataValid = outputReadEnable & ((pipelineMask & dataValidPipeline) == pipelineMask);
-
 always @ (posedge clk) begin
-    CPValid <= outputReadEnable & readDataValid;
-    if(outputReadEnable) CPData <= deserializerWindow;
+    if(~resetn) begin
+        CPValid <= 0;
+    end else begin
+        CPValid <= readNext;
+        if(readNext) begin
+            CPData <= readData;
+        end
+    end
 end
 
 /*
- * Control System
+ * Input Request System
 */
 
-localparam
-    STATE_IDLE = 0,
-    STATE_NEXT = 1;
+reg dataInputRequested;
+always @ (posedge clk) begin
+    if(~resetn) begin
+        dataInputRequested <= 0;
+    end else begin
+        if(dataInputRequested) begin
+            dataInputRequested <= ~GXFIFOValid;
+        end else begin
+            dataInputRequested <= GXFIFORead;
+        end
+    end
+end
+
+
+/*
+ * State Control
+*/
 
 reg state;
 reg nextState;
 
-reg refreshRequested;
+parameter 
+    STATE_OUTPUT = 1'b0,
+    STATE_INPUT = 1'b1;
 
 always @* begin
-    // Defaults
+    //Defaults
     nextState = state;
-    deserializerLoad = 0;
-    outputReadEnable = 0;
+    readNext = 0;
     GXFIFORead = 0;
 
     case(state)
-        STATE_IDLE: begin
-            deserializerLoad = CPRead;
-            outputReadEnable = CPRead;
-            GXFIFORead = CPRead & byteCounterNextWord;
-
-            if(CPRead) begin
-                nextState = STATE_NEXT;
-            end
+        STATE_OUTPUT: begin
+            readNext = CPRead & fifoNotEmpty;
+            GXFIFORead = fifoNotFull;
+            if(readNext | GXFIFORead) nextState = STATE_INPUT;
         end
-        STATE_NEXT: begin
-            if(refreshRequested) begin
-                if(CPValid)nextState = STATE_IDLE;
+
+        STATE_INPUT: begin
+            if(dataInputRequested) begin
+                if(GXFIFOValid)nextState = STATE_OUTPUT;
             end else begin
-                nextState = STATE_IDLE;
+                nextState = STATE_OUTPUT;
             end
         end
     endcase
@@ -132,17 +143,7 @@ end
 
 always @ (posedge clk) begin
     if(~resetn) begin
-        refreshRequested <= 0;
-    end else begin
-        if(refreshRequested) begin
-            refreshRequested <= ~CPValid;
-        end else begin
-            refreshRequested <= GXFIFORead;
-        end
-    end
-
-    if(~resetn) begin
-        state <= STATE_IDLE;
+        state <= STATE_OUTPUT;
     end else begin
         state <= nextState;
     end

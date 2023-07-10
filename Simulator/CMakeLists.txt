@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.25)
 
 project(Simulator)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 find_package(verilator HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
 
 add_executable(Testing Testing.cpp)
@@ -10,7 +12,9 @@ add_subdirectory("CommandInterface")
 add_subdirectory("TestBench")
 
 verilate(Testing TestBench
+  TRACE
   INCLUDE_DIRS ../RTL/Flipper/Control
+  INCLUDE_DIRS ../RTL/Flipper/XF
   SOURCES ../RTL/Flipper/FlipperTop.v
           )
 

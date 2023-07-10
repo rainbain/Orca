@@ -19,6 +19,6 @@ public:
 	virtual void Open();
 	virtual void Close();
 
-	virtual void WriteData(uint8_t* data, uint32_t size);
-	virtual void ReadData(uint8_t* data, uint32_t size);
+	virtual void WriteData(uint32_t* data, uint32_t size);
+	virtual void ReadData(uint32_t* data, uint32_t size);
 };
