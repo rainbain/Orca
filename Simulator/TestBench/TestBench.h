@@ -4,48 +4,70 @@
 /*
  * TestBench
  * rainbain
- * 7/5/2023
+ * 7/15/2023
  * Orca Emulator
  *
- * Top Class that holds the Flipper test benching enviroment.
+ * A testbench server that holds on to the main test bench components.
 */
 
 #pragma once
 
 #include <verilated.h>
+#include <verilated_vcd_c.h>
 #include "VFlipperTop.h"
 
-#include <verilated_vcd_c.h>
+#include "AXI/AXIReadIF.h"
 
-#include <stdint.h>
-#include <string>
+#include <mutex>
+#include <thread>
 
 class TestBench {
-	VFlipperTop* dut;
-	VerilatedVcdC *trace;
+    /*
+     * Server Side
+    */
+   bool useTracing;
+   uint32_t frequency;
+   VFlipperTop *dut;
+   VerilatedVcdC *trace;
+   uint64_t traceTime;
 
-	bool tracingEnabled;
-	uint64_t simulationTime;
+   AXIReadIF *axiReadIf;
 
-	void Clock();
-	void OnPosedge();
+   void ServerThread();
+   void Clock();
+   void Reset();
+   void OnPosedge();
 
-	// CP FIFO
-	uint8_t CPReadEnable;
-	uint32_t *CPBuffer;
-	uint32_t CPBufferSize;
-	uint32_t CPBufferPosition;
+   /*
+    * Shared
+   */
+   std::mutex sharedLock; 
+   bool running;
+
+   /*
+    * Clinet
+   */
+   
+   std::thread* serverThread;
 
 public:
-	TestBench();
-	~TestBench();
+    TestBench(uint32_t frequency);
+    ~TestBench();
 
-	void Tick(uint32_t ticks);
-	void Reset();
+    void Open();
+    void Close();
 
-	void TraceOpen(std::string name);
+    /*
+     * Setup, Must be called before opening the server.
+    */
 
-	// CP FIFO
-	void WriteCP(uint32_t* buffer, uint32_t size);
-	bool CpReady();
+    void TraceOpen(std::string file);
+    void SetupAXICallbacks(AXIReadIF::Callback axiReadCb);
+
+    /*
+     * Setters And Getters
+    */
+   
+   bool GetRunning();
+   void SetRunning(bool running);
 };
