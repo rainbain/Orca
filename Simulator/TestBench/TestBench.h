@@ -17,6 +17,7 @@
 #include "VFlipperTop.h"
 
 #include "AXI/AXIReadIF.h"
+#include "AXI/AXILiteIF.h"
 
 #include <mutex>
 #include <thread>
@@ -32,6 +33,7 @@ class TestBench {
    uint64_t traceTime;
 
    AXIReadIF *axiReadIf;
+   AXILiteIF *axiLiteIf;
 
    void ServerThread();
    void Clock();
@@ -70,4 +72,6 @@ public:
    
    bool GetRunning();
    void SetRunning(bool running);
+
+   AXILiteIF* GetCPUInterface(); 
 };

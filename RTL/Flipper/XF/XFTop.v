@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 /*
- * RISCVSoc
+ * XF
  * rainbain
  * 7/4/2023
  * Orca Emulator

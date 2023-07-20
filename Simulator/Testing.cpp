@@ -53,9 +53,12 @@ int main(){
         std::bind(&TestHandler::TestAxiRead, &me, std::placeholders::_1)
     );
 
+    AXILiteIF* cpuInterface = tb->GetCPUInterface();
+
     tb->Open();
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    cpuInterface->WriteU32(1, 69);
+    printf("%d!\n", cpuInterface->ReadU32(1));
 
     tb->Close();
 

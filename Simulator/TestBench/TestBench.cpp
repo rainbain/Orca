@@ -42,27 +42,8 @@ TestBench::TestBench(uint32_t frequency){
     this->dut = new VFlipperTop;
     this->trace = new VerilatedVcdC;
     traceTime = 0;
-/*
 
-struct AXIReadIFRefrence {
-    uint8_t* resetn;
-    uint8_t* clk;
-
-    uint32_t *araddrm;
-    uint8_t* arburstm;
-    uint8_t* arlenm;
-    uint8_t* arreadym;
-    uint8_t* arsizem;
-    uint8_t* arvalidm;
-
-    uint32_t* rdatam;
-    uint8_t* rreadym;
-    uint8_t* rlastm;
-    uint8_t* rrespm;
-    uint8_t* rvalidm;
-};
-*/
-    AXIReadIFRefrence readInterface = {
+    AXIHostReadIFRefrence readInterface = {
         &dut->clk, &dut->resetn,
 
         &dut->araddrm_a, &dut->arburstm_a, &dut->arlenm_a, &dut->arreadym_a,
@@ -71,7 +52,19 @@ struct AXIReadIFRefrence {
         (uint32_t*)&dut->rdatam_a, &dut->rreadym_a, &dut->rlastm_a, &dut->rrespm_a, &dut->rvalidm_a
     };
 
+    AXILiteDeviceRefrence liteInterface {
+        &dut->clk, &dut->resetn,
+
+        &dut->araddr_b, &dut->arvalid_b, &dut->arready_b,
+        &dut->rdata_b, &dut->rresp_b, &dut->rvalid_b, &dut->rready_b,
+        &dut->awaddr_b, &dut->awvalid_b, &dut->awready_b,
+        &dut->wdata_b, &dut->wstrb_b,
+        &dut->bresp_b, &dut->bvalid_b, &dut->bready_b
+
+    };
+
     this->axiReadIf = new AXIReadIF(readInterface, 16, 4, 16);
+    this->axiLiteIf = new AXILiteIF(liteInterface);
 }
 
 void TestBench::Clock(){
@@ -96,6 +89,7 @@ void TestBench::Reset(){
 
 void TestBench::OnPosedge(){
     axiReadIf->OnPosedge();
+    axiLiteIf->OnPosedge();
 }
 
 
@@ -145,4 +139,12 @@ void TestBench::SetRunning(bool running){
     sharedLock.lock();
     this->running = running;
     sharedLock.unlock();
+}
+
+AXILiteIF* TestBench::GetCPUInterface(){
+    AXILiteIF* i;
+    sharedLock.lock();
+    i = axiLiteIf;
+    sharedLock.unlock();
+    return i;
 }

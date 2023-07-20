@@ -12,29 +12,11 @@
 
 #pragma once
 
-#include <verilated.h>
-#include "VFlipperTop.h"
-
 #include "AXIRefrence.h"
 
 #include <stdint.h>
 #include <queue>
 #include <functional>
-
-enum class AXIBurst {
-    FIXED = 0,
-    INCRAMENT,
-    WRAP
-};
-
-struct AXIReadRequest{
-    uint32_t address;
-    AXIBurst burst;
-    uint8_t len;
-    uint8_t size;
-
-    uint64_t servedTick;
-};
 
 struct AXIReadIF_Observed {
     // Read Address Channel
@@ -48,11 +30,20 @@ struct AXIReadIF_Observed {
     uint8_t rreadym;
 };
 
+struct AXIReadRequest{
+    uint32_t address;
+    AXIBurst burst;
+    uint8_t len;
+    uint8_t size;
+
+    uint64_t servedTick;
+};
+
 class AXIReadIF {
 public:
     using Callback = std::function<uint8_t(uint32_t)>;
 private:
-    AXIReadIFRefrence dut;
+    AXIHostReadIFRefrence dut;
     uint64_t tick;
     uint8_t queSize;
     uint8_t requestLatency;
@@ -74,7 +65,7 @@ private:
     void ManageOutgoing();
     void UpdateOutputs();
 public:
-    AXIReadIF(AXIReadIFRefrence dut, uint8_t busWidth, uint8_t requestLatency, uint8_t queSize);
+    AXIReadIF(AXIHostReadIFRefrence dut, uint8_t busWidth, uint8_t requestLatency, uint8_t queSize);
 
     void OnPosedge();
     

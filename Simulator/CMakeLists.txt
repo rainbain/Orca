@@ -12,8 +12,9 @@ add_subdirectory(TestBench)
 
 verilate(Testing TestBench
   TRACE
-  INCLUDE_DIRS ../RTL/Flipper/Control
+  INCLUDE_DIRS ../RTL/Flipper/CP
   INCLUDE_DIRS ../RTL/Flipper/XF
+  INCLUDE_DIRS ../RTL/Flipper/
   SOURCES ../RTL/Flipper/FlipperTop.v
           )
 

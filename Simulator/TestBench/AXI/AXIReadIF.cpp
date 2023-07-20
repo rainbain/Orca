@@ -9,6 +9,8 @@
  *
  * Simulated AXI Read Interface
 */
+#include <stdio.h>
+#include <cstring>
 
 #include "AXIReadIF.h"
 
@@ -138,7 +140,7 @@ void AXIReadIF::UpdateOutputs(){
 }
 
 
-AXIReadIF::AXIReadIF(AXIReadIFRefrence dut, uint8_t busWidth, uint8_t requestLatency, uint8_t queSize){
+AXIReadIF::AXIReadIF(AXIHostReadIFRefrence dut, uint8_t busWidth, uint8_t requestLatency, uint8_t queSize){
     this->dut = dut;
     this->busWidth = busWidth;
     this->requestLatency = requestLatency;
