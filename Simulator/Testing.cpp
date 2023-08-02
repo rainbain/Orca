@@ -57,8 +57,8 @@ int main(){
 
     tb->Open();
 
-    cpuInterface->WriteU32(1, 69);
-    printf("%d!\n", cpuInterface->ReadU32(1));
+    cpuInterface->WriteU32(0x20, 0xFFFFFFFF);
+    printf("%d!\n", cpuInterface->ReadU32(0x20));
 
     tb->Close();
 

@@ -76,6 +76,7 @@ void TestBench::Clock(){
     dut->clk = 1;
     dut->eval();
     OnPosedge();
+    dut->eval();
 
     if(useTracing)trace->dump(traceTime); traceTime++;
 }
