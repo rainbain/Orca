@@ -1,0 +1,41 @@
+# Banner
+# rainbain
+# 8/6/2023
+# Orca Emulator
+#
+# This is the uboot script used to boot petalinux and Orca Boot
+#
+
+KernalImage=Image
+OrcaBoot=boot.bin
+Bitstream=design_1_wrapper.bin
+DeviceTree=system.dtb
+
+for boot_target in ${boot_targets};
+do
+	echo "Attempting to boot from ${boot_target}"
+	if test "${boot_target}" = "mmc0" || test "${boot_target}" = "mmc1" || test "${boot_target}" = "usb0" || test "${boot_target}" = "usb1"; then
+		if test -e ${devtype} ${devnum}:${distro_bootpart} /${Bitstream}; then
+			fatload ${devtype} ${devnum}:${distro_bootpart} 0x00100000 ${Bitstream};
+			fpga load 0 0x00100000 ${filesize}
+		else
+			echo "ERROR: Bitstream not found! Looking for: ${Bitstream}"
+		fi
+        if test -e ${devtype} ${devnum}:${distro_bootpart} /${OrcaBoot}; then
+			fatload ${devtype} ${devnum}:${distro_bootpart} 0x00100000 ${OrcaBoot};
+		else
+			echo "ERROR: OrcaBoot not found! Looking for: ${OrcaBoot}"
+		fi
+		if test -e ${devtype} ${devnum}:${distro_bootpart} /${KernalImage}; then
+			fatload ${devtype} ${devnum}:${distro_bootpart} 0x00400000 ${KernalImage};
+		else
+			echo "ERROR: Kernel image not found! Looking for: ${KernalImage}"
+		fi
+		if test -e ${devtype} ${devnum}:${distro_bootpart} /${DeviceTree}; then
+			fatload ${devtype} ${devnum}:${distro_bootpart} 0x00200000 ${DeviceTree};
+		else
+			echo "ERROR: Device tree not found! Looking for: ${DeviceTree}"
+		fi
+		go 0x00100000
+	fi
+done
