@@ -42,7 +42,7 @@ module FlipperTop(
     input wire[31:0] awaddr_b, input wire awvalid_b, output wire awready_b,
 
     // Write Data Channel
-    input wire[31:0] wdata_b, input wire[3:0] wstrb_b,
+    input wire[31:0] wdata_b, input wire[3:0] wstrb_b, input wire wvalid_b, output wire wready_b,
 
     // Write Responce Channel
     output wire[1:0] bresp_b, output wire bvalid_b, input wire bready_b
@@ -65,7 +65,7 @@ CPUIFace cpuIFace(
     .araddr_b(araddr_b), .arvalid_b(arvalid_b), .arready_b(arready_b),
     .rdata_b(rdata_b), .rresp_b(rresp_b), .rvalid_b(rvalid_b), .rready_b(rready_b),
     .awaddr_b(awaddr_b), .awvalid_b(awvalid_b), .awready_b(awready_b),
-    .wdata_b(wdata_b), .wstrb_b(wstrb_b),
+    .wdata_b(wdata_b), .wstrb_b(wstrb_b), .wvalid_b(wvalid_b), .wready_b(wready_b),
     .bresp_b(bresp_b), .bvalid_b(bvalid_b), .bready_b(bready_b),
 
     .CPURead(CPURead), .CPUWrite(CPUWrite), .CPUAddress(CPUFullAddress),
@@ -83,16 +83,27 @@ wire[31:0] CPCpuReadData;
 
 assign CPUReadData = CPCpuReadData;
 
+reg[31:0] readdata;
+assign CPCpuReadData = readdata;
 
+reg[31:0] data[0:3];
+
+always @ (posedge clk) begin
+    if(CPUWrite & CPU_CP_SELECT) begin
+        data[CPUAddress] <= CPUWriteData;
+    end else if(CPURead & CPU_CP_SELECT) begin
+        readdata <= data[CPUAddress];
+    end
+end
 /*
  * CP (Command Processor)
 */
-
+/*
 CPTop cp(
     .clk(clk), .resetn(resetn),
 
     .CPURead(CPURead & CPU_CP_SELECT), .CPUWrite(CPUWrite & CPU_CP_SELECT), .CPUAddress(CPUAddress),
     .CPUReadData(CPCpuReadData), .CPUWriteData(CPUWriteData)
 );
-
+*/
 endmodule
