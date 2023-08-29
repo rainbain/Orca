@@ -83,27 +83,16 @@ wire[31:0] CPCpuReadData;
 
 assign CPUReadData = CPCpuReadData;
 
-reg[31:0] readdata;
-assign CPCpuReadData = readdata;
 
-reg[31:0] data[0:3];
-
-always @ (posedge clk) begin
-    if(CPUWrite & CPU_CP_SELECT) begin
-        data[CPUAddress] <= CPUWriteData;
-    end else if(CPURead & CPU_CP_SELECT) begin
-        readdata <= data[CPUAddress];
-    end
-end
 /*
  * CP (Command Processor)
 */
-/*
+
 CPTop cp(
     .clk(clk), .resetn(resetn),
 
     .CPURead(CPURead & CPU_CP_SELECT), .CPUWrite(CPUWrite & CPU_CP_SELECT), .CPUAddress(CPUAddress),
     .CPUReadData(CPCpuReadData), .CPUWriteData(CPUWriteData)
 );
-*/
+
 endmodule

@@ -58,7 +58,7 @@ TestBench::TestBench(uint32_t frequency){
         &dut->araddr_b, &dut->arvalid_b, &dut->arready_b,
         &dut->rdata_b, &dut->rresp_b, &dut->rvalid_b, &dut->rready_b,
         &dut->awaddr_b, &dut->awvalid_b, &dut->awready_b,
-        &dut->wdata_b, &dut->wstrb_b,
+        &dut->wdata_b, &dut->wstrb_b, &dut->wvalid_b, &dut->wready_b,
         &dut->bresp_b, &dut->bvalid_b, &dut->bready_b
 
     };

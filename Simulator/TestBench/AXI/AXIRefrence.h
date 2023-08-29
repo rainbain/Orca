@@ -52,6 +52,8 @@ struct AXILiteDeviceRefrence {
 
     uint32_t* wdata;
     uint8_t* wstrb;
+    uint8_t* wvalid;
+    uint8_t* wready;
 
     uint8_t* bresp;
     uint8_t* bvalid;

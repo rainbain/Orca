@@ -25,7 +25,7 @@ module CPUIFace(
     input wire[31:0] araddr_b, input wire arvalid_b, output reg arready_b,
 
     // Read Data Channel
-    output wire[31:0] rdata_b, output wire[1:0] rresp_b, output reg rvalid_b, input wire rready_b,
+    output reg[31:0] rdata_b, output wire[1:0] rresp_b, output reg rvalid_b, input wire rready_b,
 
     // Write Address Channel
     input wire[31:0] awaddr_b, input wire awvalid_b, output reg awready_b,
@@ -94,6 +94,7 @@ always @ (posedge clk) begin
     if(awready_b & awvalid_b & ~bvalid_b & wready_b & wvalid_b ) begin
         bvalid_b <= 1;
     end else begin
+        if(bready_b & bvalid_b)
         bvalid_b <= 0;
     end
 end
@@ -114,7 +115,6 @@ end
 // rvalid gen
 assign rresp_b = 0;
 assign CPURead = arready_b && arvalid_b & ~rvalid_b & ~CPUWrite;
-assign rdata_b = CPUReadData;
 
 always @ (posedge clk) begin
     if(~resetn) begin
@@ -125,6 +125,13 @@ always @ (posedge clk) begin
         end else if(rvalid_b & rready_b) begin
             rvalid_b <= 0;
         end
+    end
+end
+
+// Read Data Latch
+always @ (posedge clk) begin
+    if(CPURead) begin
+        rdata_b <= CPUReadData;
     end
 end
 

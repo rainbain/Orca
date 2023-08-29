@@ -7,7 +7,9 @@
  * 7/17/2023
  * Orca Emulator
  *
- * A full AXI lite implmentation.
+ * A AXI lite implmentation.
+ * This is not full but rather just implments a working interface.
+ * Something to work on when the simulator is of higher priority.
 */
 #include <stdio.h>
 
@@ -31,12 +33,11 @@ void AXILiteIF::StateWriteWriteAddress(){
     *dut.wdata = request.data;
     *dut.wstrb = request.byteEnable;
 
-    if(*dut.awvalid && dutob.awready){
-        *dut.awvalid = 0;
+    if(*dut.awvalid && *dut.awready && dut.wvalid && dut.wready){
         state = GET_WRITE_RESPONCE;
-    }else {
-        *dut.awvalid = 1;
     }
+    *dut.awvalid = 1;
+    *dut.wvalid = 1;
 }
 
 void AXILiteIF::StateWriteReadAddress(){
@@ -44,7 +45,6 @@ void AXILiteIF::StateWriteReadAddress(){
     *dut.araddr = request.address;
 
     if(*dut.arvalid && dutob.arready){
-        *dut.arvalid = 0;
         state = GET_READ_RESPONCE;
     }else {
         *dut.arvalid = 1;
@@ -54,6 +54,7 @@ void AXILiteIF::StateWriteReadAddress(){
 void AXILiteIF::StateGetReadResponce(){
     if(*dut.rready && dutob.rvalid){
         *dut.rready = 0;
+        *dut.arvalid = 0;
         state = IDLE;
 
         request.data = dutob.rdata;
@@ -68,10 +69,10 @@ void AXILiteIF::StateGetReadResponce(){
 void AXILiteIF::StateGetWriteResponce(){
     if(*dut.bready && dutob.bvalid){
         *dut.bready = 0;
-        
+        *dut.awvalid = 0;
+        *dut.wvalid = 0;
         request.responce = dutob.bresp;
         state = IDLE;
-
         FillRequest();
     }else {
         *dut.bready = 1;

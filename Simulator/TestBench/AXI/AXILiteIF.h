@@ -7,7 +7,9 @@
  * 7/16/2023
  * Orca Emulator
  *
- * A full AXI lite implmentation.
+ * A AXI lite implmentation.
+ * This is not full but rather just implments a working interface.
+ * Something to work on when the simulator is of higher priority.
 */
 
 #pragma once
