@@ -16,8 +16,8 @@
 #include <verilated_vcd_c.h>
 #include "VFlipperTop.h"
 
-#include "AXI/AXIReadIF.h"
 #include "AXI/AXILiteIF.h"
+#include "AXI/AXIHostIF.h"
 
 #include <mutex>
 #include <thread>
@@ -32,8 +32,8 @@ class TestBench {
    VerilatedVcdC *trace;
    uint64_t traceTime;
 
-   AXIReadIF *axiReadIf;
    AXILiteIF *axiLiteIf;
+   AXIHostIF *axiHostIf;
 
    void ServerThread();
    void Clock();
@@ -64,7 +64,7 @@ public:
     */
 
     void TraceOpen(std::string file);
-    void SetupAXICallbacks(AXIReadIF::Callback axiReadCb);
+    void SetupAXICallbacks(AXIWrite axiHostWrite);
 
     /*
      * Setters And Getters

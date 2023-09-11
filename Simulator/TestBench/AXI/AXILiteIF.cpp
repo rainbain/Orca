@@ -174,11 +174,11 @@ void AXILiteIF::OnPosedge(){
     Observe();
 }
 
-void AXILiteIF::WriteU32(uint32_t address, uint32_t value){
+void AXILiteIF::WriteU32(uint32_t address, uint32_t value, uint8_t strobe){
     AXILiteReadRequest req;
     req.isWrite = 1;
     req.address = address;
-    req.byteEnable = 15;
+    req.byteEnable = strobe;
     req.data = value;
     PutRequest(req);
 }

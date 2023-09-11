@@ -42,10 +42,11 @@ module CPUIFace(
     //
 
     output wire CPURead, output reg CPUWrite, output wire[15:0] CPUAddress,
-    input wire[31:0] CPUReadData, output wire[31:0] CPUWriteData
+    input wire[31:0] CPUReadData, output reg[31:0] CPUWriteData,
+    output wire[3:0] CPUStrobe, input wire CPUWaitRequest
 );
 
-assign CPUWriteData = wdata_b;
+assign CPUStrobe = wstrb_b;
 assign CPUAddress = arvalid_b ? araddr_b[15:0] : awaddr_b[15:0];
 
 reg memoryReadResponce;
@@ -78,24 +79,34 @@ always @ (posedge clk) begin
         if(~wready_b && wvalid_b & awvalid_b & aw_en & ~CPURead) begin
             wready_b <= 1;
             CPUWrite <= 1;
+            CPUWriteData <= wdata_b;
         end else begin
             wready_b <= 0;
-            CPUWrite <= 0;
+            if(~CPUWaitRequest)CPUWrite <= 0;
         end
     end
 end
 
 // bresp_b gen 
 assign bresp_b = 0;
+reg brespReady;
+
 always @ (posedge clk) begin
     if(~resetn) begin
         bvalid_b <= 0;
+        brespReady <= 0;
     end
-    if(awready_b & awvalid_b & ~bvalid_b & wready_b & wvalid_b ) begin
-        bvalid_b <= 1;
+    if(awready_b & awvalid_b & ~bvalid_b & wready_b & wvalid_b | brespReady) begin
+        if(~CPUWaitRequest) begin
+            bvalid_b <= 1;
+            brespReady <= 0;
+        end else begin
+            brespReady <= 1;
+        end
     end else begin
-        if(bready_b & bvalid_b)
-        bvalid_b <= 0;
+        if(bready_b & bvalid_b) begin
+            bvalid_b <= 0;
+        end
     end
 end
 
@@ -120,7 +131,7 @@ always @ (posedge clk) begin
     if(~resetn) begin
         rvalid_b <= 0;
     end else begin
-        if(CPURead) begin
+        if(CPURead & ~CPUWaitRequest) begin
             rvalid_b <= 1;
         end else if(rvalid_b & rready_b) begin
             rvalid_b <= 0;

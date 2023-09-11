@@ -18,15 +18,27 @@ module FlipperTop(
     input wire clk, input wire resetn,
 
     //
-    // AXI Interface A (Full)
+    // AXI Interface A (Full, is host)
     //
 
+    // Address Write Port
+    output wire[48:0] awaddr_a, output wire[7:0] awlen_a,output wire[2:0] awsize_a,
+    output wire[1:0] awburst_a, output wire awvalid_a, input wire awready_a,
+
+    // Write Data Channel
+    output wire[127:0] wdata_a, output wire[15:0] wstrb_a, output wire wlast_a,
+    output wire wvalid_a, input wire wready_a,
+
+    // Write Responce Channel
+    input wire[1:0] bresp_a, input wire bvalid_a, output wire bready_a,
+
     // Read Address Channel
-    output wire[31:0] araddrm_a, output wire[1:0] arburstm_a, output wire[3:0] arlenm_a, input wire arreadym_a,
-    output wire[2:0] arsizem_a, output wire arvalidm_a,
+    output wire[48:0] araddr_a, output wire[7:0] arlen_a, output wire[2:0] arsize_a,
+    output wire[1:0] arburst_a, output wire arvalid_a, input wire arready_a,
 
     // Read Data Channel
-    input wire[127:0] rdatam_a, output wire rreadym_a, input wire rlastm_a, input wire[1:0] rrespm_a, input wire rvalidm_a,
+    input wire[127:0] rdata_a, input wire[1:0] rresp_a, input wire rlast_a,
+    input wire rvalid_a, output wire rready_a,
 
     //
     // AXI Inerface B (Lite, from host)
@@ -58,6 +70,8 @@ wire CPUWrite;
 wire[15:0] CPUFullAddress;
 wire[31:0] CPUReadData;
 wire[31:0] CPUWriteData;
+wire CPUWaitRequest;
+wire[3:0] CPUStrobe;
 
 CPUIFace cpuIFace(
     .clk(clk), .resetn(resetn),
@@ -69,7 +83,7 @@ CPUIFace cpuIFace(
     .bresp_b(bresp_b), .bvalid_b(bvalid_b), .bready_b(bready_b),
 
     .CPURead(CPURead), .CPUWrite(CPUWrite), .CPUAddress(CPUFullAddress),
-    .CPUReadData(CPUReadData), .CPUWriteData(CPUWriteData)
+    .CPUReadData(CPUReadData), .CPUWriteData(CPUWriteData), .CPUWaitRequest(CPUWaitRequest), .CPUStrobe(CPUStrobe)
 );
 
 // Addressing
@@ -77,11 +91,17 @@ wire[11:0] CPUAddress = CPUFullAddress[11:0];
 wire[3:0] CPUSelector = CPUFullAddress[15:12];
 
 wire CPU_CP_SELECT = CPUSelector == 0;
+wire CPU_WPAR_SELECT = CPUSelector == 8;
 
 // Read Ports
 wire[31:0] CPCpuReadData;
 
 assign CPUReadData = CPCpuReadData;
+
+// Wait Request Ports
+wire CPWaitRequest;
+
+assign CPUWaitRequest = CPWaitRequest;
 
 
 /*
@@ -91,8 +111,19 @@ assign CPUReadData = CPCpuReadData;
 CPTop cp(
     .clk(clk), .resetn(resetn),
 
-    .CPURead(CPURead & CPU_CP_SELECT), .CPUWrite(CPUWrite & CPU_CP_SELECT), .CPUAddress(CPUAddress),
-    .CPUReadData(CPCpuReadData), .CPUWriteData(CPUWriteData)
+    .CPURead(CPURead), .CPUWrite(CPUWrite), .CPUAddress(CPUAddress), .CPUStrobe(CPUStrobe),
+    .CPUReadData(CPCpuReadData), .CPUWriteData(CPUWriteData), .CPUWaitRequest(CPWaitRequest),
+    .CPRegistersSelect(CPU_CP_SELECT), .WPARSelect(CPU_WPAR_SELECT),
+
+    .awaddr_a(awaddr_a), .awlen_a(awlen_a), .awsize_a(awsize_a),
+    .awburst_a(awburst_a), .awvalid_a(awvalid_a), .awready_a(awready_a),
+    .wdata_a(wdata_a), .wstrb_a(wstrb_a), .wlast_a(wlast_a),
+    .wvalid_a(wvalid_a), .wready_a(wready_a),
+    .bresp_a(bresp_a), .bvalid_a(bvalid_a), .bready_a(bready_a),
+    .araddr_a(araddr_a), .arlen_a(arlen_a), .arsize_a(arsize_a),
+    .arburst_a(arburst_a), .arvalid_a(arvalid_a), .arready_a(arready_a),
+    .rdata_a(rdata_a), .rresp_a(rresp_a), .rlast_a(rlast_a),
+    .rvalid_a(rvalid_a), .rready_a(rready_a)
 );
 
 endmodule

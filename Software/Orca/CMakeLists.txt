@@ -7,8 +7,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_BUILD_TYPE Debug)
 
 add_subdirectory(Krita)
+add_subdirectory(Flipper)
 
 # Add the main.cpp source file to the executable
 add_executable(Orca Orca.cpp)
 
-target_link_libraries(Orca PRIVATE pthread Krita)
+target_link_libraries(Orca PRIVATE pthread Krita GX Flipper)

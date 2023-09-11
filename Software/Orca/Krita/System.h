@@ -65,5 +65,7 @@ namespace ZynqUSP {
 
         void SetRunning(bool running);
         bool GetRunning();
+
+        Memory* GetMemory();
     };
 };

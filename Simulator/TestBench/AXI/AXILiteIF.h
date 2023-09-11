@@ -86,6 +86,6 @@ public:
 
     void OnPosedge();
 
-    void WriteU32(uint32_t address, uint32_t value);
+    void WriteU32(uint32_t address, uint32_t value, uint8_t strobe = 15);
     uint32_t ReadU32(uint32_t address);
 };

@@ -15,22 +15,41 @@
 
 #include <stdint.h>
 
-struct AXIHostReadIFRefrence {
+struct AXIHostRefrence {
     uint8_t* resetn;
     uint8_t* clk;
 
-    uint32_t *araddrm;
-    uint8_t* arburstm;
-    uint8_t* arlenm;
-    uint8_t* arreadym;
-    uint8_t* arsizem;
-    uint8_t* arvalidm;
+    uint32_t *awaddr;
+    uint8_t* awlen;
+    uint8_t* awsize;
 
-    uint32_t* rdatam;
-    uint8_t* rreadym;
-    uint8_t* rlastm;
-    uint8_t* rrespm;
-    uint8_t* rvalidm;
+    uint8_t* awburst;
+    uint8_t* awvalid;
+    uint8_t* awready;
+
+    uint32_t* wdata;
+    uint16_t* wstrb;
+    uint8_t* wlast;
+    uint8_t* wvalid;
+    uint8_t* wready;
+
+    uint8_t* bresp;
+    uint8_t* bvalid;
+    uint8_t* bready;
+
+    uint32_t* araddr;
+    uint8_t* arlen;
+    uint8_t* arsize;
+    uint8_t* arburst;
+    uint8_t* arvalid;
+    uint8_t* arready;
+
+    uint32_t* rdata;
+    uint8_t* rresp;
+    uint8_t* rlast;
+
+    uint8_t* rvalid;
+    uint8_t* rready;
 };
 
 struct AXILiteDeviceRefrence {
@@ -72,3 +91,8 @@ enum class AXIResponce {
     SLAVE_ERROR,
     DECODE_ERROR
 };
+
+extern uint8_t AXISizeLookup[];
+
+typedef void (*AXIWrite)(uint32_t addr, uint32_t data, uint8_t strobe);
+typedef uint32_t (*AXIRead)(uint32_t addr);

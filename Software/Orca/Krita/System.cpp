@@ -68,7 +68,6 @@ sensors(), mem(), fanController() {
     fanController.Initalize(memTTC0, 2);
 
     LoadConfig();
-
     Start();
 }
 
@@ -101,4 +100,9 @@ bool System::GetRunning(){
     ret = this->running;
     mtx.unlock();
     return ret;
+}
+
+
+Memory* System::GetMemory(){
+    return &mem;
 }

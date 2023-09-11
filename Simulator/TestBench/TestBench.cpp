@@ -43,14 +43,6 @@ TestBench::TestBench(uint32_t frequency){
     this->trace = new VerilatedVcdC;
     traceTime = 0;
 
-    AXIHostReadIFRefrence readInterface = {
-        &dut->clk, &dut->resetn,
-
-        &dut->araddrm_a, &dut->arburstm_a, &dut->arlenm_a, &dut->arreadym_a,
-        &dut->arsizem_a, &dut->arvalidm_a,
-
-        (uint32_t*)&dut->rdatam_a, &dut->rreadym_a, &dut->rlastm_a, &dut->rrespm_a, &dut->rvalidm_a
-    };
 
     AXILiteDeviceRefrence liteInterface {
         &dut->clk, &dut->resetn,
@@ -63,8 +55,20 @@ TestBench::TestBench(uint32_t frequency){
 
     };
 
-    this->axiReadIf = new AXIReadIF(readInterface, 16, 4, 16);
+    AXIHostRefrence hostInterface {
+        &dut->clk, &dut->resetn,
+
+        &dut->awaddr_a, &dut->awlen_a, &dut->awsize_a,
+        &dut->awburst_a, &dut->awvalid_a, &dut->awready_a,
+        dut->wdata_a, &dut->wstrb_a, &dut->wlast_a, &dut->wvalid_a, &dut->wready_a,
+        &dut->bresp_a, &dut->bvalid_a, &dut->bready_a,
+        &dut->araddr_a, &dut->arlen_a, &dut->arsize_a, &dut->arburst_a, &dut->arvalid_a, &dut->arready_a,
+        dut->rdata_a, &dut->rresp_a, &dut->rlast_a,
+        &dut->rvalid_a, &dut->rready_a
+    };
+
     this->axiLiteIf = new AXILiteIF(liteInterface);
+    this->axiHostIf = new AXIHostIF(hostInterface);
 }
 
 void TestBench::Clock(){
@@ -89,8 +93,8 @@ void TestBench::Reset(){
 }
 
 void TestBench::OnPosedge(){
-    axiReadIf->OnPosedge();
     axiLiteIf->OnPosedge();
+    axiHostIf->OnPosedge();
 }
 
 
@@ -122,8 +126,8 @@ void TestBench::TraceOpen(std::string file){
     useTracing = true;
 }
 
-void TestBench::SetupAXICallbacks(AXIReadIF::Callback axiReadCb){
-    this->axiReadIf->SetCallback(axiReadCb);
+void TestBench::SetupAXICallbacks(AXIWrite axiHostWrite){
+    axiHostIf->SetWriteCallback(axiHostWrite);
 }
 
 

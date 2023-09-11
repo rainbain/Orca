@@ -254,32 +254,35 @@ The CP is one of the few parts of the graphics pipeline the main processor has d
 The CP is mapped to CPU address 0xCC000000, here is a quick refrence to its internal registers.
 All CP registers are 16 bit, though many do not contain the full bit depth.
 
-|Address|Name       |Description                                   |
-|-------|-----------|----------------------------------------------|
-|000    |SR         |The CP status and interrupt vector.           |
-|002    |CR         |The controll register for GP and FIFO.        |
-|004    |Clear      |Bits used to clear FIFO over and under flows. |
-|00E    |Token      |The BP's internal token register exposed.     |
-|010    |BBox Left  |The left most screen bounding box.            |
-|012    |BBox Right |The right most screen bounding box.           |
-|014    |BBox Top   |The top most screen bounding box.             |
-|016    |BBox Bottom|The bottom most screen bounding box.          |
-|020    |FIFO Base L|The lower half of the FIFO base address.      |
-|022    |FIFO Base H|The higher half of the FIFO base address.     |
-|024    |FIFO End L |The lower half of the FIFO end address.       |
-|026    |FIFO End H |The higher half of the FIFO end address.      |
-|028    |FIFO HWM L |The lower half of the FIFO high watermark.    |
-|02A    |FIFO HWM H |The higher half of the FIFO high watermark.   |
-|02C    |FIFO LWM L |The lower half of the FIFO low watermark.     |
-|02E    |FIFO LWM H |The higher half of the FIFO low watermark.    |
-|030    |FIFO WRD L |The lower half of the FIFO write distance.    |
-|032    |FIFO WRD H |The higher half of the FIFO write distance.   |
-|034    |FIFO WRP L |The lower half of the FIFO write pointer.     |
-|036    |FIFO WRP H |The higher half of the FIFO write pointer.    |
-|038    |FIFO RDP L |The lower half of the FIFO read pointer.      |
-|03A    |FIFO RDP H |The higher half of the FIFO read pointer.     |
-|03C    |FIFO BP L  |The lower half of the FIFO breakpoint.        |
-|03E    |FIFO BP H  |The higher half of the FIFO breakpoint.       |
+|Address|Name           |Description                                   |
+|-------|---------------|----------------------------------------------|
+|000    |SR             |The CP status and interrupt vector.           |
+|002    |CR             |The controll register for GP and FIFO.        |
+|004    |Clear          |Bits used to clear FIFO over and under flows. |
+|008    |FIFO Errors    |Orca only FIFO error registers.               |
+|00E    |Token          |The BP's internal token register exposed.     |
+|010    |BBox Left      |The left most screen bounding box.            |
+|012    |BBox Right     |The right most screen bounding box.           |
+|014    |BBox Top       |The top most screen bounding box.             |
+|016    |BBox Bottom    |The bottom most screen bounding box.          |
+|01C    |FIFO AXI Base L|Orca only AXI address high value. Lower half. |
+|01E    |FIFO AXI Base H|Orca only AXI address high value. Higher half.|
+|020    |FIFO Base L    |The lower half of the FIFO base address.      |
+|022    |FIFO Base H    |The higher half of the FIFO base address.     |
+|024    |FIFO End L     |The lower half of the FIFO end address.       |
+|026    |FIFO End H     |The higher half of the FIFO end address.      |
+|028    |FIFO HWM L     |The lower half of the FIFO high watermark.    |
+|02A    |FIFO HWM H     |The higher half of the FIFO high watermark.   |
+|02C    |FIFO LWM L     |The lower half of the FIFO low watermark.     |
+|02E    |FIFO LWM H     |The higher half of the FIFO low watermark.    |
+|030    |FIFO WRD L     |The lower half of the FIFO write distance.    |
+|032    |FIFO WRD H     |The higher half of the FIFO write distance.   |
+|034    |FIFO WRP L     |The lower half of the FIFO write pointer.     |
+|036    |FIFO WRP H     |The higher half of the FIFO write pointer.    |
+|038    |FIFO RDP L     |The lower half of the FIFO read pointer.      |
+|03A    |FIFO RDP H     |The higher half of the FIFO read pointer.     |
+|03C    |FIFO BP L      |The lower half of the FIFO breakpoint.        |
+|03E    |FIFO BP H      |The higher half of the FIFO breakpoint.       |
 
 ### SR
 The CP status register is a 5 bit register containing the status. It is also read after a interupt
@@ -300,14 +303,25 @@ The CP controll register is a 6 bit register used for enabling parts of the CP a
 |1  |FIFO IRQ Enable & BP Clear     |Write to enable IRQ interrupts from the CP. Write 1 to also clearing the breakpoint IRQ. |
 |2  |FIFO Overflow IRQ Enable & ACK |Write to enable IRQ interrupts from FIFO overflow and clear to acknolidge interrupts.    |
 |3  |FIFO Underflow IRQ Enable      |Write to enable IRQ interrupts from FIFO underflows.                                     |
-|4  |GP Link Enable                 |Allow there to be commands writen into the FIFO?                                         |
 |5  |BP Enable                      |Enable FIFO breakpoint,                                                                  |
+|4  |GP Link Enable                 |Allow there to be commands writen into the FIFO?                                         |
 
 ### Clear
 Used to clear the FIFO overflow and underflow flags. Writing '1' will clear the flag.
 |Bit|Name                |
 |0  |Clear FIFO Overflow |
 |1  |Clear FIFO Underflow|
+
+### FIFO Errors
+Exist only in Orca emulator, used to check FIFO errors that occured during runtime.
+
+The first 2 bits is the last, non-zero, AXI back responce recived.
+|Bits|Description                                                                           |
+|----|--------------------------------------------------------------------------------------|
+| 00 | Okay, transaction sucesfull unless its a exclusive transaction.                      |
+| 01 | Okay, Exclusive acess sucesfull.                                                     |
+| 10 | Device error. Acess reached the device, but device errored.                          |
+| 11 | Decode error. Could be the interconnect signaling there is no device at the address. |
 
 ### Token
 The token is a useful way to monitor the execution status of your CP commands. The BP contains a internal token register, its value
@@ -316,6 +330,10 @@ it reflected here. So that when the BP write command is executed, you can catch 
 ### BBox
 Flipper contains a series of bounding boxes. These values are read only and I am not yet sure how to properly use them. The basis
 is that the bounding boxes are used to measure how far offscreen geometry is put when rendering. Not many games use them.
+
+### FIFO AXI Base (Orca Only)
+This register only exist withen orca emulator and is appended to the upper half of the AXI addresses used by the CPU to allow it to operate
+within a 64 bit memory space.
 
 ### FIFO Base
 This is the 128 byte alined FIFO base address, where the start address of the shared FIFO like memory between the CPU and GPU.
