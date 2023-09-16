@@ -2,8 +2,7 @@
 A cllection of documented missing functions from Orca Emulator.
 
 ## Command Processor
- * No interrupts.
- * CP Registers are 16 bit alined, writing 8 bits will override the rest of the 16 bit word.
+ * Interruts are weird, check that!
 
 ## XF
 ### Transformation Unit

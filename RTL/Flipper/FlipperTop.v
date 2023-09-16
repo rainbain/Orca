@@ -57,7 +57,13 @@ module FlipperTop(
     input wire[31:0] wdata_b, input wire[3:0] wstrb_b, input wire wvalid_b, output wire wready_b,
 
     // Write Responce Channel
-    output wire[1:0] bresp_b, output wire bvalid_b, input wire bready_b
+    output wire[1:0] bresp_b, output wire bvalid_b, input wire bready_b,
+    
+    //
+    // Interrupts
+    //
+    
+    output wire irq_a
 );
 
 /*
@@ -103,13 +109,18 @@ wire CPWaitRequest;
 
 assign CPUWaitRequest = CPWaitRequest;
 
+// IRQ Ports
+wire cpIrq;
+
+assign irq_a = cpIrq;
+
 
 /*
  * CP (Command Processor)
 */
 
 CPTop cp(
-    .clk(clk), .resetn(resetn),
+    .clk(clk), .resetn(resetn), .irq(cpIrq),
 
     .CPURead(CPURead), .CPUWrite(CPUWrite), .CPUAddress(CPUAddress), .CPUStrobe(CPUStrobe),
     .CPUReadData(CPCpuReadData), .CPUWriteData(CPUWriteData), .CPUWaitRequest(CPWaitRequest),

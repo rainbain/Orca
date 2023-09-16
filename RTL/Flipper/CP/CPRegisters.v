@@ -14,7 +14,7 @@ module CPRegisters(
     //
     // Top Level
     //
-    input wire clk, input wire resetn,
+    input wire clk, input wire resetn, output wire irq,
 
 
     //
@@ -84,6 +84,13 @@ wire ClearFIFOOverflow;
 
 wire[15:0] StatusRegister;
 assign StatusRegister[15:5] = 0;
+
+assign StatusRegister[0] = FIFOOverflowMet;
+assign StatusRegister[1] = FIFOUnderflowMet;
+assign StatusRegister[2] = StatGPReadIdle;
+assign StatusRegister[3] = StatGPIdle;
+assign StatusRegister[4] = BpInterruptMet;
+
 reg BpInterruptMet;
 reg FIFOUnderflowMet;
 reg FIFOOverflowMet;
@@ -123,18 +130,22 @@ always @ (posedge clk) begin
         CpIRQEn <= 0;
         EnGPFIFO <= 0;
     end else begin
-        if(CPUWrite & REGISTER_BANK_0 & CPUStrobe[0]) begin
-            EnBP <= CPUWriteData[5];
-            EnGPLink <= CPUWriteData[4];
-            EnFIFOUnderflow <= CPUWriteData[3];
-            EnFIFOOverflow <= CPUWriteData[2];
-            CpIRQEn <= CPUWriteData[1];
-            EnGPFIFO <= CPUWriteData[0];
+        if(CPUWrite & REGISTER_BANK_0 & CPUStrobe[2]) begin
+            EnBP <= CPUWriteData[21];
+            EnGPLink <= CPUWriteData[20];
+            EnFIFOUnderflow <= CPUWriteData[19];
+            EnFIFOOverflow <= CPUWriteData[18];
+            CpIRQEn <= CPUWriteData[17];
+            EnGPFIFO <= CPUWriteData[16];
         end
     end
 end
 
 wire[15:0] zeros = 0;
+
+// Interrupt Controller
+
+assign irq = (FIFOOverflowMet | FIFOUnderflowMet | BpInterruptMet) & CpIRQEn;
 
 // Read Encoder
 assign CPUReadData = CPURead ?

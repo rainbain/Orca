@@ -46,6 +46,7 @@ module CPUIFace(
     output wire[3:0] CPUStrobe, input wire CPUWaitRequest
 );
 
+
 assign CPUStrobe = wstrb_b;
 assign CPUAddress = arvalid_b ? araddr_b[15:0] : awaddr_b[15:0];
 

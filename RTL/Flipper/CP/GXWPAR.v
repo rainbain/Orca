@@ -46,8 +46,14 @@ module GXWPAR(
     //
 
     input wire[31:0] FIFOBase, input wire[31:0] FIFOEnd,
-    input wire[31:0] FIFOHighWatermark, output wire[31:0] FIFOWritePointer, input wire[31:0] FIFOAXIBase,
-    output wire[15:0] FIFOErrors, input wire FIFONewBase
+    input wire[31:0] FIFOHighWatermark, input wire[31:0] FIFOLowWatermark, input wire[31:0] FIFOBreakpoint, output wire[31:0] FIFOWritePointer, 
+    input wire[31:0] FIFOAXIBase, output wire[15:0] FIFOErrors, input wire FIFONewBase,
+    
+    //
+    // Interrupts
+    //
+    
+    output wire IntBP, output wire IntFIFOverflow, output wire IntFIFOUnderflow
 );
 
 // Resets whenever the device is reset or the fifo base moves.
@@ -161,6 +167,10 @@ assign axiAddr = {FIFOAXIBase[16:0], FIFOCounter, 4'd0};
 wire alinedBarrier = FIFOCounter[1] & FIFOCounter[2] & FIFOCounter[3] & FIFOCounter[4] & FIFOCounter[6] & FIFOCounter[7]; 
 
 wire fifoRollover = FIFOCounter >= FIFOEndAddr;
+
+assign IntBP = FIFOCounter[27:1] == FIFOBreakpoint[31:5];
+assign IntFIFOverflow = FIFOCounter[27:1] > FIFOHighWatermark[31:5];
+assign IntFIFOUnderflow = FIFOCounter[27:1] < FIFOLowWatermark[31:5];
 
 always @ (posedge clk) begin
     if(~fifoBaseResetN) begin

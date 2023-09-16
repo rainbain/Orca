@@ -16,6 +16,8 @@ module CPTop (
     //
 
     input wire clk, input wire resetn,
+    
+    output wire irq,
 
 
     //
@@ -86,7 +88,7 @@ wire CpIRQEn;
 wire EnGPFIFO;
 
 CPRegisters CPURegisters(
-    .clk(clk), .resetn(resetn),
+    .clk(clk), .resetn(resetn), .irq(irq),
 
     .CPURead(CPURead & CPRegistersSelect), .CPUWrite(CPUWrite & CPRegistersSelect), .CPUAddress(CPUAddress[5:0]),
     .CPUReadData(CPUReadData), .CPUWriteData(CPUWriteData), .CPUStrobe(CPUStrobe),
@@ -126,8 +128,10 @@ GXWPAR wpar(
     .bvalid_a(bvalid_a), .bready_a(bready_a),
 
     .FIFOBase(FIFOBase), .FIFOEnd(FIFOEnd),
-    .FIFOHighWatermark(FIFOHighWatermark), .FIFOWritePointer(FIFOWritePointer),
-    .FIFOAXIBase(FIFOAXIBase), .FIFOErrors(FIFOErrors), .FIFONewBase(FIFONewBase)
+    .FIFOHighWatermark(FIFOHighWatermark), .FIFOLowWatermark(FIFOLowWatermark), .FIFOBreakpoint(FIFOBreakpoint),
+    .FIFOWritePointer(FIFOWritePointer), .FIFOAXIBase(FIFOAXIBase), .FIFOErrors(FIFOErrors), .FIFONewBase(FIFONewBase),
+    
+    .IntBP(IntBP), .IntFIFOverflow(IntFIFOverflow), .IntFIFOUnderflow(IntFIFOUnderflow)
 );
 
 endmodule
