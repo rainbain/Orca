@@ -1,1 +1,0 @@
-/usr/bin/c++   -Wall -g  -rdynamic CMakeFiles/Orca.dir/Orca.cpp.o  -o Orca -lpthread Krita/libKrita.a Flipper/libFlipper.a 

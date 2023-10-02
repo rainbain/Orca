@@ -1,9 +1,0 @@
-/home/rainbain/Orca/build/CMakeFiles/rebuild_cache.dir
-/home/rainbain/Orca/build/CMakeFiles/Orca.dir
-/home/rainbain/Orca/build/CMakeFiles/edit_cache.dir
-/home/rainbain/Orca/build/Krita/CMakeFiles/rebuild_cache.dir
-/home/rainbain/Orca/build/Krita/CMakeFiles/Krita.dir
-/home/rainbain/Orca/build/Krita/CMakeFiles/edit_cache.dir
-/home/rainbain/Orca/build/Flipper/CMakeFiles/rebuild_cache.dir
-/home/rainbain/Orca/build/Flipper/CMakeFiles/Flipper.dir
-/home/rainbain/Orca/build/Flipper/CMakeFiles/edit_cache.dir

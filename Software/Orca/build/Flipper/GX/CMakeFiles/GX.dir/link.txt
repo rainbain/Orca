@@ -1,2 +1,0 @@
-/usr/bin/ar qc libGX.a  CMakeFiles/GX.dir/CP.cpp.o
-/usr/bin/ranlib libGX.a
