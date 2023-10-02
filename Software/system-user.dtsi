@@ -10,5 +10,5 @@ bootargs = "earlycon console=ttyPS1,115200 clk_ignore_unused root=/dev/sda2 rw r
     &Flipper_0 {
         compatible = "generic-uio";
         interrupt-parent = <&gic>;
-        interrupts = <0 121 0>;
+        interrupts = <0 89 1>;
     };

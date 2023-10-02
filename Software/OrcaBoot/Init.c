@@ -43,7 +43,7 @@ void InitalizeInterface(){
     // Reset AXI FPD 0
     // Targets RST_FPD_TOP
 
-    putstr("Resetting Flipper");
+    putstr("Resetting Flipper\n");
     PutRegister(0x00FD1A0100,
     (1<<9) //  AXI HPM0 Reset On
     );
