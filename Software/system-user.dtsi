@@ -1,0 +1,14 @@
+    /include/ "system-conf.dtsi"
+    / {
+chosen {      
+
+bootargs = "earlycon console=ttyPS1,115200 clk_ignore_unused root=/dev/sda2 rw rootwait xilinx_tsn_ep.st_pcp=4 cma=900M uio_pdrv_genirq.of_id=generic-uio";
+
+		}; 
+    };
+     
+    &Flipper_0 {
+        compatible = "generic-uio";
+        interrupt-parent = <&gic>;
+        interrupts = <0 121 0>;
+    };

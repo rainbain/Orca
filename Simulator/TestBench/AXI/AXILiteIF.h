@@ -88,4 +88,11 @@ public:
 
     void WriteU32(uint32_t address, uint32_t value, uint8_t strobe = 15);
     uint32_t ReadU32(uint32_t address);
+
+    // Must be 16 alined
+    void WriteU16(uint32_t address, uint16_t value);
+    uint16_t ReadU16(uint32_t address);
+
+    void WriteU8(uint32_t address, uint8_t value);
+    uint8_t ReadU8(uint32_t address);
 };

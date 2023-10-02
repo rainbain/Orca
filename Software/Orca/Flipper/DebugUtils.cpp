@@ -23,7 +23,7 @@
 #define SSPUT_HEX_16(v) std::setw(4) << std::setfill('0') << std::hex << (v)
 #define SSPUT_HEX_8(v) std::setw(2) << std::setfill('0') << std::hex << (v)
 
-using namespace Flipper;
+using namespace FlipperAPI;
 
 std::string DebugUtils::FormattedTime(){
     std::time_t currentTime = std::time(nullptr);

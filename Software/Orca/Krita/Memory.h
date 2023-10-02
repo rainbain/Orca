@@ -10,6 +10,11 @@
  * Manages memory between the hardware and user space software.
 */
 
+/*
+ * Possilbe Obsolence:
+ * /dev/mem mapping is to likly be replaced with UIO
+*/
+
 #pragma once
 
 #include <cstddef>

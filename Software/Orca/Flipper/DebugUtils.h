@@ -16,7 +16,7 @@
 
 #include "GX/CP.h"
 
-namespace Flipper {
+namespace FlipperAPI {
     class DebugUtils {
     public:
         static std::string FormattedTime();

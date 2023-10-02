@@ -14,10 +14,11 @@
 
 #include <verilated.h>
 #include <verilated_vcd_c.h>
-#include "VFlipperTop.h"
+#include "VSimulatorRapper.h"
 
 #include "AXI/AXILiteIF.h"
 #include "AXI/AXIHostIF.h"
+#include "Interrupt.h"
 
 #include <mutex>
 #include <thread>
@@ -28,12 +29,13 @@ class TestBench {
     */
    bool useTracing;
    uint32_t frequency;
-   VFlipperTop *dut;
+   VSimulatorRapper *dut;
    VerilatedVcdC *trace;
    uint64_t traceTime;
 
    AXILiteIF *axiLiteIf;
    AXIHostIF *axiHostIf;
+   Interrupt *interrupts;
 
    void ServerThread();
    void Clock();
@@ -74,4 +76,5 @@ public:
    void SetRunning(bool running);
 
    AXILiteIF* GetCPUInterface(); 
+   Interrupt* GetCPUInterrupt();
 };

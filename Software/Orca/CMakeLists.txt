@@ -11,5 +11,4 @@ add_subdirectory(Flipper)
 
 # Add the main.cpp source file to the executable
 add_executable(Orca Orca.cpp)
-
-target_link_libraries(Orca PRIVATE pthread Krita GX Flipper)
+target_link_libraries(Orca PRIVATE pthread Krita Flipper)

@@ -1,5 +1,6 @@
 add_library( TestBench
 TestBench.cpp
+Interrupt.cpp
 AXI/AXILiteIF.cpp
 AXI/AXIHostIF.cpp
 AXI/AXIRefrence.cpp

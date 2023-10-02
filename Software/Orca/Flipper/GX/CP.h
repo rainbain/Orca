@@ -12,14 +12,9 @@
 
 #pragma once
 
-#include "../../Krita/Memory.h"
-#include "../Flipper.h"
+#include "../../Krita/System.h"
 
-#define CP_BASE_ADDRESS (0xCC000000 | FLIPPER_BASE_ADDRESS)
-
-#define WPAR_BASE_ADDRESS (0xCC008000 | FLIPPER_BASE_ADDRESS)
-
-namespace Flipper {
+namespace FlipperAPI {
     struct CPWord {
         uint16_t L;
         uint16_t H;
@@ -56,8 +51,6 @@ namespace Flipper {
     };
 
     class CP{
-        volatile void *cpMemorySpace;
-
         volatile CPRegisters* cpRegisters;
         volatile void *wpar;
 
@@ -67,11 +60,47 @@ namespace Flipper {
         uint32_t GetU32(volatile CPWord *word);
 
     public:
-        CP(ZynqUSP::Memory *iface);
+        CP();
+        CP(ZynqUSP::System *system, ZynqUSP::UIO* flipperUIO);
         ~CP();
 
         /*
-         * Hardware Wrappers
+         * Status/Control Wrappers
+        */
+
+       uint16_t GetStatus();
+       uint16_t GetControl();
+
+       // Pass status register
+       bool IsBPInterrupt(uint16_t s);
+       bool IsGPCommandsIdle(uint16_t s);
+       bool IsGPReadIdle(uint16_t s);
+       bool IsFIFOUnderflowInterrupt(uint16_t s);
+       bool IsFIFOOverflowInterrupt(uint16_t s);
+       
+       // Pass Controll Register
+       bool IsBPEnabled(uint16_t c);
+       bool IsGPLinkEnabled(uint16_t c);
+       bool IsFIFOOverflowIRQEnabled(uint16_t c);
+       bool IsFIFOUnderflowIRQEnabled(uint16_t c);
+       bool IsCPIRQEnabled(uint16_t c);
+       bool IsGPFIFOReadEnabled(uint16_t c);
+
+       // Enable CP IRQ to clear BP interrupts
+       void SetBPEnable(bool enable);
+       void SetGPLinkEnable(bool enable);
+       void SetFIFOUnderflowIRQEnable(bool enable);
+       void SetFIFOOverflowIRQEnable(bool enable);
+       void SetCPIRQEnable(bool enable);
+       void SetGPFIFOReadEnable(bool enable);
+
+       void ClearFIFOUnderflowIRQ();
+       void ClearFIFOOverflowIRQ();
+       void ClearAllIntrrupts(); // Warning, turns on interrupts!
+
+
+        /*
+         * FIFO Wrapper
         */
 
         void SetFIFOBase(uint32_t addr);

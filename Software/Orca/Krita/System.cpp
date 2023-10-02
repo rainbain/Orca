@@ -62,7 +62,7 @@ void System::DeAlllocateHardware(){
 
 
 System::System() :
-sensors(), mem(), fanController() {
+sensors(), mem(), uioIndex(), fanController() {
     AllocateHardware();
 
     fanController.Initalize(memTTC0, 2);
@@ -105,4 +105,8 @@ bool System::GetRunning(){
 
 Memory* System::GetMemory(){
     return &mem;
+}
+
+UIOIndexing* System::GetUIOIndexing(){
+    return &uioIndex;
 }

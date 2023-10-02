@@ -18,9 +18,11 @@ You bash, not dash, when following these sets as petalinux only supports bash. I
 
 1. Setup a petalinux enviroment with its setting script: `source <PETALINUX INSTALL DIR>/settings.sh` This will also display any missing dependencys or errors.
 2. Download the KR260 board support package. That is on xilinx's download page at `https://www.xilinx.com/support/download.html`
-3. Creat the project with `petalinux-create -s <KRIA_KR_260_BSP>` and change directory into the created project folder.
+3. Create the project with `petalinux-create -s <KRIA_KR_260_BSP>` and change directory into the created project folder.
 4. Configure the project with the Vivado hardware config `petalinux-config --get-hw-description ../` The directoy `../` is where it will look for the XSA file. From the config you will want to check `Image Packing Configuration` and make the root filesystem type is `EXT4` and that the device node is `/dev/sda2`. From there you can save and exit letting it finish creating all the config files needed.
-5. Build the project `petalinux-build`. This will take a long time, I recommend getting some coffie and check for errors every once in a while.
+5. Configure the kernel for UIO with `petalinux-config -c kernel`. Navigate to Device Drivers -> Userspace I/O drivers and enable `Userspace I/O platform driver with generic IRQ handling`, `Userspace platform driver with generic irq and dynamic memory`, and `Xilinx AI Engine driver`. They should display `<*>` when enabled. At this point save and exit.
+6. Copy the device tree in the Software directory to `<petalinux-project>/project-spec/meta-user/recipes-bsp/device-tree/files/`
+7. Build the project `petalinux-build`. This will take a long time, I recommend getting some coffie and check for errors every once in a while.
 
 At this point your project should contain `images/linux/system.dtb` and `images/linux/Image` that we will put on the SD card lator.
 

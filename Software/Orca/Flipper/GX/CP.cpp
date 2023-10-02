@@ -15,7 +15,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-using namespace Flipper;
+#include "../MemoryMap.h"
+
+using namespace FlipperAPI;
 
 void CP::SetU32(volatile CPWord *word, uint32_t value){
     word->H = value >> 16;
@@ -29,19 +31,133 @@ uint32_t CP::GetU32(volatile CPWord *word){
     return w;
 }
 
+CP::CP(){
+    cpRegisters = 0;
+    wpar = 0;
+    mem = 0;
+}
 
-CP::CP(ZynqUSP::Memory *iface){
-    this->mem = iface;
+CP::CP(ZynqUSP::System *system, ZynqUSP::UIO* flipperUIO){
+    mem = system->GetMemory();
 
-    cpMemorySpace = mem->Map(CP_BASE_ADDRESS, 0xFFFF);
+    this->cpRegisters = (volatile CPRegisters*)flipperUIO->GetMemory(FLIPPER_CP_OFFSET);
+    this->wpar = (volatile void*)flipperUIO->GetMemory(FLIPPER_WPAR_OFFSET);
 
-    this->cpRegisters = (volatile CPRegisters*)cpMemorySpace;
-    this->wpar = (void*)((size_t)cpMemorySpace + 0x8000);
+    this->cpRegisters->CR = 0xFF;
 }
 
 CP::~CP(){
-    mem->UnMap((void*)cpMemorySpace, 0xFFFF);
 }
+
+uint16_t CP::GetStatus(){
+    return cpRegisters->SR;
+}
+
+uint16_t CP::GetControl(){
+    return cpRegisters->CR;
+}
+
+bool CP::IsBPInterrupt(uint16_t s){
+    return (s & (1<<4)) > 0 ? true : false;
+}
+
+bool CP::IsGPCommandsIdle(uint16_t s){
+    return (s & (1<<3)) > 0 ? true : false;
+}
+
+bool CP::IsGPReadIdle(uint16_t s){
+    return (s & (1<<2)) > 0 ? true : false;
+}
+
+bool CP::IsFIFOUnderflowInterrupt(uint16_t s){
+    return (s & (1<<1)) > 0 ? true : false;
+}
+
+bool CP::IsFIFOOverflowInterrupt(uint16_t s){
+    return (s & (1<<0)) > 0 ? true : false;
+}
+
+bool CP::IsBPEnabled(uint16_t c){
+    return (c & (1<<5)) > 0 ? true : false;
+}
+
+bool CP::IsGPLinkEnabled(uint16_t c){
+    return (c & (1<<4)) > 0 ? true : false;
+}
+
+bool CP::IsFIFOOverflowIRQEnabled(uint16_t c){
+    return (c & (1<<3)) > 0 ? true : false;
+}
+
+bool CP::IsFIFOUnderflowIRQEnabled(uint16_t c){
+    return (c & (1<<2)) > 0 ? true : false;
+}
+
+bool CP::IsCPIRQEnabled(uint16_t c){
+    return (c & (1<<1)) > 0 ? true : false;
+}
+
+bool CP::IsGPFIFOReadEnabled(uint16_t c){
+    return (c & (1<<0)) > 0 ? true : false;
+}
+
+
+void CP::SetBPEnable(bool enable){
+    if(enable)
+        cpRegisters->CR |= (1 << 5);
+    else
+        cpRegisters->CR &= ~(1 << 5);
+}
+
+void CP::SetGPLinkEnable(bool enable){
+    if(enable)
+        cpRegisters->CR |= (1 << 4);
+    else
+        cpRegisters->CR &= ~(1 << 4);
+}
+
+void CP::SetFIFOUnderflowIRQEnable(bool enable){
+    if(enable)
+        cpRegisters->CR |= (1 << 3);
+    else
+        cpRegisters->CR &= ~(1 << 3);
+}
+
+void CP::SetFIFOOverflowIRQEnable(bool enable){
+    if(enable)
+        cpRegisters->CR |= (1 << 2);
+    else
+        cpRegisters->CR &= ~(1 << 2);
+}
+
+void CP::SetCPIRQEnable(bool enable){
+    if(enable)
+        cpRegisters->CR |= (1 << 1);
+    else
+        cpRegisters->CR &= ~(1 << 1);
+}
+
+void CP::SetGPFIFOReadEnable(bool enable){
+    if(enable)
+        cpRegisters->CR |= (1 << 0);
+    else
+        cpRegisters->CR &= ~(1 << 0);
+}
+
+
+void CP::ClearFIFOUnderflowIRQ(){
+    cpRegisters->CLEAR |= (1<<1);
+}
+
+void CP::ClearFIFOOverflowIRQ(){
+    cpRegisters->CLEAR |= (1<<0);
+}
+
+void CP::ClearAllIntrrupts(){
+    cpRegisters->CLEAR |= (1<<1) | (1<<0);
+    cpRegisters->CR |= (1 << 1);
+}
+
 
 
 void CP::SetFIFOAXIBase(uint32_t addr){

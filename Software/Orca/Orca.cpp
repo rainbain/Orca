@@ -4,60 +4,53 @@
 #include <unistd.h>
 
 #include "Krita/System.h"
+#include "Krita/Hardware/AXIGPIO.h"
 
 #include "Flipper/DebugUtils.h"
-#include "Flipper/GX/CP.h"
+#include "Flipper/Flipper.h"
 
 using namespace ZynqUSP;
+using namespace FlipperAPI;
 
 #define CAST_POINTER(pt) ((uint32_t)(uint64_t)pt)
 
-void DumpFIFO(Flipper::CP *cp, Flipper::GXFIFO fifo){
-    std::string fifoDump = Flipper::DebugUtils::DumpCurrentFIFO(cp);
+void DumpFIFO(CP *cp, GXFIFO fifo, size_t dumpSize = 4096){
+    std::string fifoDump = DebugUtils::DumpCurrentFIFO(cp);
     printf("%s", fifoDump.c_str());
-    fifoDump = Flipper::DebugUtils::DumpFIFOData(cp, fifo, 4096/32);
+    fifoDump = DebugUtils::DumpFIFOData(cp, fifo, dumpSize/32);
     printf("%s", fifoDump.c_str());
 }
 
 int main(){
-
     System* sys = new System();
 
+    Flipper* flipper = new Flipper(sys);
+    CP *cp = flipper->GetCP();
+
     Memory *mem = sys->GetMemory();
+    AXIGPIO *gpio = (AXIGPIO*)mem->Map(0xA0000000, sizeof(AXIGPIO));
 
-    Flipper::CP *cp = new Flipper::CP(mem);
+    cp->SetCPIRQEnable(false);
+    printf("Interrupts before init: %d\n", gpio->gpio[0].data);
+    cp->SetCPIRQEnable(true);
+    cp->SetFIFOOverflowIRQEnable(true);
+    printf("Interrupts after init: %d\n", gpio->gpio[0].data);
 
-    Flipper::GXFIFO fifo = cp->CreateGXFIFO();
+    GXFIFO fifo = cp->CreateGXFIFO();
 
     cp->LoadFIFO(fifo);
 
-    memset(fifo.buffer, 0, fifo.size);
-    cp->PrepareFIFORead(fifo);
-    srand(0);
-    
-    for(uint16_t i = 0; i < 4096/2; i++){
-        cp->WriteU32(rand());
-    }
+    for(uint32_t i = 0; i < 4096; i++) cp->WriteU32(i);
 
+    DumpFIFO(cp, fifo, 64);
 
-    DumpFIFO(cp, fifo);
-
-    srand(0);
-    uint32_t *bt = (uint32_t*)fifo.buffer;
-    for(uint16_t i = 0; i < 4096/4; i++){
-        rand();
-    }
-    for(uint16_t i = 0; i < 4096/4; i++){
-        if(bt[i] != rand()){
-            printf("%d!\n", i);
-        }
-    }
+    printf("Interrupts after fifo: %d\n", gpio->gpio[0].data);
     
     printf("Press any key to continue.");
     getchar();
 
     cp->DestroyFIFO(fifo);
 
-    delete cp;
+    delete flipper;
     delete sys;
 }

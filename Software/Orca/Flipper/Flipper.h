@@ -7,9 +7,28 @@
  * 9/3/2023
  * Orca Emulator
  *
- * Not sure what will be fitting in here yet.
+ * Flipper Base Class
 */
 
 #pragma once
 
-#define FLIPPER_BASE_ADDRESS 0x400000000
+#include "../Krita/System.h"
+
+#include "GX/CP.h"
+
+namespace FlipperAPI {
+    class Flipper {
+            ZynqUSP::System *sys;
+            ZynqUSP::UIO flipperUIO;
+
+            CP cp;
+
+            void FlipperIRQHandler(uint32_t interruptCount);
+
+        public:
+            Flipper(ZynqUSP::System *sys);
+            ~Flipper();
+
+            CP* GetCP();
+    };
+}

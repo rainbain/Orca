@@ -19,6 +19,7 @@
 #include "Memory.h"
 #include "TemperatureSensors.h"
 #include "FanController.h"
+#include "UIO.h"
 
 #include "Hardware/TTC.h"
 
@@ -34,6 +35,7 @@ namespace ZynqUSP {
         //
         TemperatureSensors sensors;
         Memory mem;
+        UIOIndexing uioIndex;
         FanController fanController;
 
         std::thread serverThread;
@@ -67,5 +69,6 @@ namespace ZynqUSP {
         bool GetRunning();
 
         Memory* GetMemory();
+        UIOIndexing* GetUIOIndexing();
     };
 };

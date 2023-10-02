@@ -48,7 +48,6 @@ void AXIHostIF::WriteStateDate(){
         axiWrite(writePointer+8, dutob.wdata[2], (dutob.wstrb >> 4) & 0b1111);
         axiWrite(writePointer+12, dutob.wdata[3], (dutob.wstrb)      & 0b1111);
         callbackMutex.unlock();
-
         if(writeTransferLength == 0){
             printf("AXI write transfer length exceeds the given length!\n");
 
@@ -57,6 +56,7 @@ void AXIHostIF::WriteStateDate(){
         }
 
         if(dutob.wlast){
+            *dut.wready = 0;
             writeState = WS_BACK_RESPONCE;
         }
 

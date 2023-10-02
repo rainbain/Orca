@@ -39,7 +39,7 @@ TestBench::TestBench(uint32_t frequency){
     this->running = false;
     this->frequency = frequency;
     this->useTracing = false;
-    this->dut = new VFlipperTop;
+    this->dut = new VSimulatorRapper;
     this->trace = new VerilatedVcdC;
     traceTime = 0;
 
@@ -55,6 +55,8 @@ TestBench::TestBench(uint32_t frequency){
 
     };
 
+    // For some reason verilator has decited it wants 64 bit addressing despeite a 32 bit bus.
+    // So I will fix that here, not in the interface structure since this is not normal.
     AXIHostRefrence hostInterface {
         &dut->clk, &dut->resetn,
 
@@ -69,6 +71,8 @@ TestBench::TestBench(uint32_t frequency){
 
     this->axiLiteIf = new AXILiteIF(liteInterface);
     this->axiHostIf = new AXIHostIF(hostInterface);
+
+    this->interrupts = new Interrupt(&dut->irq_a, SIMULATOR_INTERRUPT_RISING_EDGE);
 }
 
 void TestBench::Clock(){
@@ -95,6 +99,7 @@ void TestBench::Reset(){
 void TestBench::OnPosedge(){
     axiLiteIf->OnPosedge();
     axiHostIf->OnPosedge();
+    interrupts->OnPosedge();
 }
 
 
@@ -117,6 +122,7 @@ void TestBench::Close(){
     serverThread->join();
 
     delete serverThread;
+    delete interrupts;
 }
 
 
@@ -150,6 +156,14 @@ AXILiteIF* TestBench::GetCPUInterface(){
     AXILiteIF* i;
     sharedLock.lock();
     i = axiLiteIf;
+    sharedLock.unlock();
+    return i;
+}
+
+Interrupt* TestBench::GetCPUInterrupt(){
+    Interrupt* i;
+    sharedLock.lock();
+    i = interrupts;
     sharedLock.unlock();
     return i;
 }

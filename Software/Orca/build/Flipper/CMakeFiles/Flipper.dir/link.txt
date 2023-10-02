@@ -1,0 +1,2 @@
+/usr/bin/ar qc libFlipper.a  CMakeFiles/Flipper.dir/DebugUtils.cpp.o CMakeFiles/Flipper.dir/Flipper.cpp.o CMakeFiles/Flipper.dir/GX/CP.cpp.o
+/usr/bin/ranlib libFlipper.a

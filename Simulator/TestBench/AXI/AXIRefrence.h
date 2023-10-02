@@ -15,6 +15,8 @@
 
 #include <stdint.h>
 
+#define AXI_CAST(x) ((uint32_t)(uint64_t)(x))
+
 struct AXIHostRefrence {
     uint8_t* resetn;
     uint8_t* clk;
@@ -92,7 +94,8 @@ enum class AXIResponce {
     DECODE_ERROR
 };
 
-extern uint8_t AXISizeLookup[];
+extern const uint8_t AXISizeLookup[];
+extern const uint8_t AXI16StrobeLookup[];
 
 typedef void (*AXIWrite)(uint32_t addr, uint32_t data, uint8_t strobe);
 typedef uint32_t (*AXIRead)(uint32_t addr);

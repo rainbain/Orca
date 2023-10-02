@@ -73,9 +73,9 @@ wire[31:0] FIFOReadPointer = 0;
 wire[31:0] FIFOBreakpoint;
 wire[15:0] FIFOErrors;
 
-wire IntBP = 0;
-wire IntFIFOverflow = 0;
-wire IntFIFOUnderflow = 0;
+wire IntBP;
+wire IntFIFOverflow;
+wire IntFIFOUnderflow;
 wire StatGPIdle = 0;
 wire StatGPReadIdle = 0;
 wire FIFONewBase;

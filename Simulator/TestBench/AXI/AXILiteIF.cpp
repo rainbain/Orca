@@ -191,3 +191,44 @@ uint32_t AXILiteIF::ReadU32(uint32_t address){
     PutRequest(req);
     return this->request.data;
 }
+
+void AXILiteIF::WriteU16(uint32_t address, uint16_t value){
+    uint32_t alliinedAddress = address & (~0b11);
+
+    uint8_t alinement = address % 4;
+    uint8_t strobe = AXI16StrobeLookup[alinement];
+
+    uint32_t longValue = value;
+
+    WriteU32(address, alinement == 0 ? longValue : longValue << 16, strobe);
+}
+
+uint16_t AXILiteIF::ReadU16(uint32_t address){
+    uint32_t alliinedAddress = address & (~0b11);
+    uint8_t alinement = address % 4;
+
+    uint32_t longValue = ReadU32(alliinedAddress);
+
+    return alinement == 0 ? longValue : longValue >> 16;
+}
+
+
+void AXILiteIF::WriteU8(uint32_t address, uint8_t value){
+    uint32_t alliinedAddress = address & (~0b11);
+
+    uint8_t alinement = address % 4;
+    uint8_t strobe = 0b1 << alinement;
+
+    uint8_t shiftedValue = value << (alinement * 8);
+
+    WriteU32(address, shiftedValue, strobe);
+}
+
+uint8_t AXILiteIF::ReadU8(uint32_t address){
+    uint32_t alliinedAddress = address & (~0b11);
+    uint8_t alinement = address % 4;
+
+    uint32_t longValue = ReadU32(alliinedAddress);
+    
+    return longValue >> (alinement * 8);
+}

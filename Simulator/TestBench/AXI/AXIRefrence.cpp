@@ -13,6 +13,10 @@
 
 #include "AXIRefrence.h"
 
-uint8_t AXISizeLookup[] = {
+const uint8_t AXISizeLookup[] = {
     1, 2, 4, 8, 16, 32, 64, 128
+};
+
+const uint8_t AXI16StrobeLookup[] = {
+    0b0011, 0, 0b1100, 0
 };

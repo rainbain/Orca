@@ -4,6 +4,7 @@ add_library(Krita STATIC
     Memory.cpp
     TemperatureSensors.cpp
     System.cpp
+    UIO.cpp
 )
 
 #target_link_libraries(Krita PRIVATE rt)
